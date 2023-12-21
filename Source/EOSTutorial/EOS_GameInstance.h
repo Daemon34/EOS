@@ -14,4 +14,14 @@ class EOSTUTORIAL_API UEOS_GameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
+	UFUNCTION(BlueprintCallable, Category="EOS Functions")
+	void LoginWithEOS(FString ID, FString Token, FString LoginType);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="EOS Functions")
+	FString GetPlayerUsername();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="EOS Functions")
+	bool IsPlayerLoggedIn();
+
+	void LoginWithEOS_Return(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserID, const FString& Error);
 };
