@@ -78,7 +78,7 @@ void UEOS_GameInstance::FindSessionAndJoin()
 		IOnlineSessionPtr SessionPtrRef = SubsystemRef->GetSessionInterface();
 		if (SessionPtrRef) {
 			SessionSearch = MakeShareable(new FOnlineSessionSearch());
-			//SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+			SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
 			SessionSearch->bIsLanQuery = false;
 			SessionSearch->MaxSearchResults = 20;
 			SessionSearch->QuerySettings.SearchParams.Empty();
