@@ -58,11 +58,13 @@ void UEOS_GameInstance::CreateEOSSession(bool bIsDedicatedServer, bool bIsLanSer
 		if (SessionPtrRef) {
 			FOnlineSessionSettings SessionCreationInfo;
 			SessionCreationInfo.bIsDedicated = bIsDedicatedServer;
-			SessionCreationInfo.bAllowInvites = true;
+			SessionCreationInfo.bAllowInvites = false;
 			SessionCreationInfo.bIsLANMatch = bIsLanServer;
 			SessionCreationInfo.NumPublicConnections = NumberOfPublicConnections;
 			SessionCreationInfo.bUseLobbiesIfAvailable = false;
 			SessionCreationInfo.bUsesPresence = false;
+			SessionCreationInfo.bAllowJoinViaPresence = false;
+			SessionCreationInfo.bAllowJoinViaPresenceFriendsOnly = false;
 			SessionCreationInfo.bShouldAdvertise = true;
 			SessionCreationInfo.Set(SEARCH_KEYWORDS, FString("RandomHi"), EOnlineDataAdvertisementType::ViaOnlineService);
 			SessionPtrRef->OnCreateSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnCreateSessionCompleted);
@@ -137,13 +139,15 @@ void UEOS_GameInstance::OnFindSessionCompleted(bool bWasSuccessful)
 					SessionPtrRef->JoinSession(0, FName("MainSession"), SessionSearch->SearchResults[0]);
 				}
 				else {
-					CreateEOSSession(false, false, 10);
+					UE_LOG(LogTemp, Error, TEXT("Server Not Found"));
+					//CreateEOSSession(false, false, 10);
 				}
 			}
 		}
 	}
 	else {
-		CreateEOSSession(false, false, 10);
+		UE_LOG(LogTemp, Error, TEXT("Server Not Found"));
+		//CreateEOSSession(false, false, 10);
 	}
 }
 
