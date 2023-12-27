@@ -3,6 +3,7 @@
 #include "EOSTutorialGameMode.h"
 #include "EOSTutorialCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "EOS_PlayerController.h"
 
 AEOSTutorialGameMode::AEOSTutorialGameMode()
 {
@@ -12,4 +13,6 @@ AEOSTutorialGameMode::AEOSTutorialGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	PlayerControllerClass = AEOS_PlayerController::StaticClass(); // Set the PlayerController to our custome one.
 }
