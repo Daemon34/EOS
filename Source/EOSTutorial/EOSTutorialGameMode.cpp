@@ -4,6 +4,7 @@
 #include "EOSTutorialCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include "EOS_PlayerController.h"
+#include "EOS_GameSession.h"
 
 AEOSTutorialGameMode::AEOSTutorialGameMode()
 {
@@ -15,4 +16,7 @@ AEOSTutorialGameMode::AEOSTutorialGameMode()
 	}
 
 	PlayerControllerClass = AEOS_PlayerController::StaticClass(); // Set the PlayerController to our custome one.
+	GameSessionClass = AEOS_GameSession::StaticClass(); // Set the GameDession to our custom one.
+
+	// Network Travel : https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/Networking/Travelling/
 }
