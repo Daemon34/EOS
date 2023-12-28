@@ -30,7 +30,7 @@ private:
 	void HandleRegisterPlayerCompleted(FName EOSSessionName, const TArray<FUniqueNetIdRef>& PlayerIds, bool bWasSuccesful);
 	void HandleStartSessionCompleted(FName EOSSessionName, bool bWasSuccessful);
 	void HandleUnregisterPlayerCompleted(FName EOSSessionName, const TArray<FUniqueNetIdRef>& PlayerIds, bool bWasSuccessful);
-	void HandleEndSessionCompleted(FName SessionName, bool bWasSuccessful);
+	void HandleEndSessionCompleted(FName EOSSessionName, bool bWasSuccessful);
 	void HandleDestroySessionCompleted(FName EOSSessionName, bool bWasSuccessful);
 
 	FDelegateHandle CreateSessionDelegateHandle; // Delegate to bind callback event for create session

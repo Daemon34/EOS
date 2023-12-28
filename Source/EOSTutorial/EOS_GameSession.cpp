@@ -104,7 +104,7 @@ void AEOS_GameSession::UnregisterPlayer(const APlayerController* ExitingPlayer) 
 		if (ExitingPlayer->PlayerState) {
 			UnregisterPlayerDelegateHandle = Session->AddOnUnregisterPlayersCompleteDelegate_Handle(FOnUnregisterPlayersCompleteDelegate::CreateUObject(this, &AEOS_GameSession::HandleUnregisterPlayerCompleted));
 
-			if (!Session->UnregisterPlayer(SessionName, *ExitingPlayer->PlayerState->UniqueId)) {
+			if (!Session->UnregisterPlayer(SessionName, *ExitingPlayer->PlayerState->GetUniqueId())) {
 				UE_LOG(LogTemp, Warning, TEXT("Failed to Unregister Player !"));
 				Session->ClearOnUnregisterPlayersCompleteDelegate_Handle(UnregisterPlayerDelegateHandle);
 				UnregisterPlayerDelegateHandle.Reset();
@@ -158,7 +158,7 @@ void AEOS_GameSession::EndSession() {
 	}
 }
 
-void AEOS_GameSession::HandleEndSessionCompleted(FName SessionName, bool bWasSuccessful) {
+void AEOS_GameSession::HandleEndSessionCompleted(FName EOSSessionName, bool bWasSuccessful) {
 	IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
 	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
 

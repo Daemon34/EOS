@@ -6,6 +6,8 @@
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 
 // Default class constructor
 AEOS_PlayerController::AEOS_PlayerController()
@@ -82,6 +84,7 @@ void AEOS_PlayerController::HandleLoginCompleted(int32 LocalUserNum, bool bWasSu
 	IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
 	if (bWasSuccessful) {
 		UE_LOG(LogTemp, Log, TEXT("Login callback completed !"));
+		FindSessions();
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("EOS Login Failed !"));
@@ -89,4 +92,87 @@ void AEOS_PlayerController::HandleLoginCompleted(int32 LocalUserNum, bool bWasSu
 
 	Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, LoginDelegateHandle);
 	LoginDelegateHandle.Reset();
+}
+
+void AEOS_PlayerController::FindSessions(FName SearchKey, FString SearchValue)
+{
+	IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+	TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
+
+	// Remove the default settings that FOnlineSessionSearch set
+	Search->QuerySettings.SearchParams.Empty();
+
+	// Search using key/value attributes
+	Search->QuerySettings.Set(SearchKey, SearchValue, EOnlineComparisonOp::Equals);
+	FindSessionsDelegateHandle = Session->AddOnFindSessionsCompleteDelegate_Handle(
+		FOnFindSessionsCompleteDelegate::CreateUObject(this, &AEOS_PlayerController::HandleFindSessionsCompleted, Search));
+
+	UE_LOG(LogTemp, Log, TEXT("Finding sessions..."));
+
+	if (!Session->FindSessions(0, Search)) {
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find session !"));
+	}
+}
+
+void AEOS_PlayerController::HandleFindSessionsCompleted(bool bWasSuccesful, TSharedRef<FOnlineSessionSearch> Search) {
+	IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+	if (bWasSuccesful) {
+		UE_LOG(LogTemp, Log, TEXT("Found sessions !"));
+
+		for (FOnlineSessionSearchResult SessionInSearchResult : Search->SearchResults) {
+			// Check if Session is valid => Currently a bug in EOS make IsValid() to always return false on DS so we skip this step
+
+			// Ensure the connection string is resolvable and store the info in ConnectInfo and in SessionToJoin
+			if (Session->GetResolvedConnectString(SessionInSearchResult, NAME_GamePort, ConnectString)) {
+				SessionToJoin = &SessionInSearchResult;
+			}
+
+			// Currently, just take the first session. TODO : Find the BEST session
+			break;
+		}
+		JoinSession();
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find session ! (From Callback)"));
+	}
+
+	Session->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsDelegateHandle);
+	FindSessionsDelegateHandle.Reset();
+}
+
+void AEOS_PlayerController::JoinSession() {
+	IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+	JoinSessionDelegateHandle = Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &AEOS_PlayerController::HandleJoinSessionCompleted));
+
+	UE_LOG(LogTemp, Log, TEXT("Joining Session..."));
+	if (!Session->JoinSession(0, "SessionName", *SessionToJoin)) {
+		UE_LOG(LogTemp, Warning, TEXT("Join Session Failed !"));
+	}
+}
+
+void AEOS_PlayerController::HandleJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result) {
+	IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+	if (Result == EOnJoinSessionCompleteResult::Success) {
+		UE_LOG(LogTemp, Log, TEXT("Joined Session !"));
+		if (GEngine) {
+			ConnectString = "127.0.0.1:7777"; // Override Connect String to localhost for development purpose
+			FURL DedicatedServerURL(nullptr, *ConnectString, TRAVEL_Absolute);
+			FString DedicatedServerJoinError;
+			EBrowseReturnVal::Type DedicatedServerJoinStatus = GEngine->Browse(GEngine->GetWorldContextFromWorldChecked(GetWorld()), DedicatedServerURL, DedicatedServerJoinError);
+			if (DedicatedServerJoinStatus == EBrowseReturnVal::Failure) {
+				UE_LOG(LogTemp, Error, TEXT("Failed to browse for dedicated server. Error is: %s"), *DedicatedServerJoinError);
+			}
+
+			// No check of NetworkError or TravelError events
+		}
+	}
+	Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
+	JoinSessionDelegateHandle.Reset();
 }

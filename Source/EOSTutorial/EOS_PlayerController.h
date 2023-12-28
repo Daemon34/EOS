@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "EOS_PlayerController.generated.h"
 
 /**
  * Child class of APlayerController to hols EOS code
  */
+class FOnlineSessionSearch;
+class FOnlineSessionSearchResult;
+
 UCLASS()
 class EOSTUTORIAL_API AEOS_PlayerController : public APlayerController
 {
@@ -29,4 +33,20 @@ protected:
 
 	// Delegate to bind callback event for login
 	FDelegateHandle LoginDelegateHandle;
+
+	void FindSessions(FName SearchKey = "KeyName", FString SearchValue = "KeyValue");
+
+	void HandleFindSessionsCompleted(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
+
+	FDelegateHandle FindSessionsDelegateHandle;
+
+	FString ConnectString;
+
+	FOnlineSessionSearchResult* SessionToJoin;
+
+	void JoinSession();
+
+	void HandleJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
+	FDelegateHandle JoinSessionDelegateHandle;
 };
